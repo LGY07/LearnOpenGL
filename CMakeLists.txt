@@ -5,6 +5,10 @@ set(CMAKE_CXX_STANDARD 26)
 
 add_executable(LearnOpenGL WIN32
         main.cpp
+        src/GlfwWindow.cpp
+        src/ShaderProgram.cpp
+        src/VertexArrays.cpp
+        src/VertexBuffers.cpp
         third_party/glad/src/glad.c
 )
 
@@ -14,6 +18,7 @@ target_link_options(LearnOpenGL PRIVATE
 )
 
 target_include_directories(LearnOpenGL PRIVATE
+        include
         third_party/glad/include
         third_party/glfw/include
         third_party/glm

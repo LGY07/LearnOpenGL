@@ -21,7 +21,6 @@ int main() {
 
     // 开启 Depth Test 避免 3D 问题 （可能未出现）
     glEnable(GL_DEPTH_TEST);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // 关闭 VSync
     glfwSwapInterval(0);
