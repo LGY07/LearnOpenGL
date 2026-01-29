@@ -93,6 +93,8 @@ glEnableVertexAttribArray(1);
 
 ### 再次调整项目结构
 
+> 当前仓库分支的结构已调整，可见仓库的代码
+
 移除 `VertexArrays` 和 `VertexBuffers` 类
 
 新增 `Mesh` 类，可以根据顶点数据与索引数据绘制网格
