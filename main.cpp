@@ -1,7 +1,6 @@
 #include "GlfwWindow.h"
+#include "Mesh.h"
 #include "ShaderProgram.h"
-#include "VertexArrays.h"
-#include "VertexBuffers.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -11,7 +10,6 @@
 int main() {
 
     const GlfwWindow window(1920, 1080, "Hello OpenGL");
-
 
     const ShaderProgram shader;
     shader.attach(GL_VERTEX_SHADER, "../shaders/basic.vert");
@@ -25,18 +23,20 @@ int main() {
     // 关闭 VSync
     glfwSwapInterval(0);
 
-
     float vertices[] = {
-            // pos              // color
-            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // 顶点 1
-            0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // 顶点 2
-            0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f // 顶点 3
+            // pos        // color
+            -0.5f, -0.5f, 0.0f, 1, 0, 0, // 0
+            0.5f,  -0.5f, 0.0f, 0, 1, 0, // 1
+            0.5f,  0.5f,  0.0f, 0, 0, 1, // 2
+            -0.5f, 0.5f,  0.0f, 1, 1, 0 // 3
     };
 
+    unsigned int indices[] = {
+            0, 1, 2, // 第一个三角形
+            2, 3, 0 // 第二个三角形
+    };
 
-    const VertexArrays VAO;
-    VAO.bind();
-    VertexBuffers VBO(vertices, sizeof(vertices));
+    const Mesh mesh(vertices, sizeof(vertices), indices, sizeof(indices) / sizeof(unsigned int));
 
     // position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
@@ -46,7 +46,7 @@ int main() {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void *>(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    int timeLoc = glGetUniformLocation(shader.id, "uTime");
+    const int timeLoc = glGetUniformLocation(shader.id, "uTime");
 
     while (!glfwWindowShouldClose(window.as_ptr())) {
         const auto timeValue = static_cast<float>(glfwGetTime());
@@ -72,8 +72,8 @@ int main() {
         shader.use();
         glUniform1f(timeLoc, timeValue);
 
-        VAO.bind();
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // 调用 draw() 方法直接绘制出 Mesh
+        mesh.draw();
 
         glfwSwapBuffers(window.as_ptr());
         glfwPollEvents();

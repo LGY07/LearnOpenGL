@@ -7,8 +7,7 @@ add_executable(LearnOpenGL WIN32
         main.cpp
         src/GlfwWindow.cpp
         src/ShaderProgram.cpp
-        src/VertexArrays.cpp
-        src/VertexBuffers.cpp
+        src/Mesh.cpp
         third_party/glad/src/glad.c
 )
 
