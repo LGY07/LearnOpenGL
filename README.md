@@ -132,7 +132,7 @@ Mesh::Mesh(const float *vertices, const GLsizei vertexSize, const unsigned int *
     glBindVertexArray(0);
 }
 
-// 绘制正方形
+// 绘制 Mesh
 void Mesh::draw() const {
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
