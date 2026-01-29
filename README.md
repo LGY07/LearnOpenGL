@@ -1,284 +1,206 @@
-# OpenGL 学习笔记（创建窗口并绘制三角形）
+# OpenGL 学习笔记（三角形的颜色与插值）
 
-## 配置环境
+## 重新整理项目结构
 
-> 已经在 Windows 配置好了 `CMake 4.1.2` `Ninja 1.13.2` `Clang 21.1.0(LLVM 21.1.0)`
->
-> 使用 clang-cl 作为 C/C++ 编译器
->
-> 省略 C/C++ 编译器的配置部分
+将着色器拆分至 `shaders` 目录，程序会在运行时读取并编译着色器
 
-> 使用的 OpenGL 版本为 OpenGL 4.6 Core
->
-> 使用的 C++ 标准为 C++26
+将 OpenGL 初始化、着色器编译、VAO 和 VBO 的管理写为四个对象拆分至 `include` 和 `src` 目录，此处为 C++ 的内容不描述，具体可见仓库源码
 
-### 创建项目
+## 三角形的渐变与呼吸效果
 
-先创建以下目录和文件
+### 顶点着色器 `basic.vert`
 
 ```
-LearnOpenGL/
-├─ main.cpp         <- 程序入口
-├─ CMakeLists.txt   <- CMake 配置
-├─ shaders/         <- 用 GLSL 写的着色器
-│  ├─ basic.vert    <- 顶点着色器
-│  ├─ basic.frag    <- 片段着色器
-│  └─ common.glsl
-├─ src /
-├─ include/
-├─ third_party/
-│  ├─ glfw/         <- GLFW 库（窗口）
-│  ├─ glad/         <- GLAD 库（函数加载）
-│  └─ glm/          <- GLM 库（数学）
+#version 460 core
 
+layout (location = 0) in vec3 aPos; // 输入位置
+layout (location = 1) in vec3 aColOff; // 输入颜色
+
+out vec3 vColOff; // 输出颜色
+
+void main()
+{
+    gl_Position = vec4(aPos, 1.0);
+    vColOff = aColOff; // 颜色传递给片段着色器
+}
 ```
 
-### 准备 GLFW
-
-前往 [GLFW 主页](https://www.glfw.org/) 下载 GLFW 的源码压缩包，得到 `glfw-3.4.zip`
-并解压（也可以在[下载页面](https://www.glfw.org/download.html)获取预编译的 GLFW 库，建议从源码编译提高成功率）
-
-进入解压后的 `glfw-3.4` 目录编译
+### 片段着色器 `basic.frag`
 
 ```
-mkdir build
-cd build
-cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
-cmake --build .
+#version 460 core
+
+in vec3 vColOff;
+out vec4 FragColor;
+
+uniform float uTime; // 初始化统一变量
+
+void main()
+{
+    // 计算颜色
+    vec3 color = vec3(
+    sin(uTime + vColOff.x),
+    sin(uTime + vColOff.y + 2.0),
+    sin(uTime + vColOff.z + 4.0)
+    ) * 0.5 + 0.5;
+
+    // 输出颜色
+    FragColor = vec4(color, 1.0);
+}
 ```
 
-如果没有出错，你会在 `glfw-3.4/build/src` 目录得到 `glfw3.lib` 文件
-
-在项目目录的 `third_party/glfw` 下创建 `lib` 目录，然后把 `glfw3.lib` 放进去
-
-最后把整个 `glfw-3.4/include` 复制到 `third_party/glfw`
+### 以下为重新整理后的样板代码
 
 ```
-third_party/
-├─ glfw/
-│  ├─ lib/
-│  │  └─ glfw3.lib
-│  └─ include/
-```
-
-### 准备 GLAD
-
-打开 [GLAD 下载页面](https://glad.dav1d.de/) 填写选项：
-
-* Language: C/C++
-* Specification: OpenGL
-* API: gl version 4.6
-* Profile: Core
-
-最后点击 GENERATE 下载 `glad.zip`
-
-解压后整个目录内容（`src`和`include`）放到 `third_party/glad`
-
-### 准备 GLM
-
-从 [Github 仓库](https://github.com/g-truc/glm/releases/latest)下载 GLM
-
-解压后整个目录的内容放到 `third_party/glm`
-
-### 配置 CMake
-
-编辑 `CMakeLists.txt`
-
-```
-cmake_minimum_required(VERSION 4.0)
-project(LearnOpenGL)
-
-set(CMAKE_CXX_STANDARD 26)
-
-add_executable(LearnOpenGL WIN32
-        main.cpp
-        third_party/glad/src/glad.c
-)
-
-target_link_options(LearnOpenGL PRIVATE
-        -Wl,/SUBSYSTEM:WINDOWS
-        -Wl,/ENTRY:mainCRTStartup
-)
-
-target_include_directories(LearnOpenGL PRIVATE
-        third_party/glad/include
-        third_party/glfw/include
-        third_party/glm
-)
-
-target_link_directories(LearnOpenGL PRIVATE
-        third_party/glfw/lib
-)
-
-target_link_libraries(LearnOpenGL PRIVATE
-        glfw3
-        opengl32
-)
-```
-
-### 检查配置
-
-如果配置正确，以下代码能创建一个灰色的窗口
-
-```
-#include <glad/glad.h>
-
-#include <GLFW/glfw3.h>
-
-#include <iostream>
+#include "GlfwWindow.h"
+#include "ShaderProgram.h"
+#include "VertexArrays.h"
+#include "VertexBuffers.h"
 
 int main() {
-    if (!glfwInit())
-        return -1;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow *window = glfwCreateWindow(1920, 1080, "Hello OpenGL", nullptr, nullptr);
-    if (!window)
-        return -1;
-    glfwMakeContextCurrent(window);
-    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-        std::cerr << "Failed to init GLAD\n";
-        return -1;
-    }
-    while (!glfwWindowShouldClose(window)) {
+    // 初始化 OpenGL
+    const GlfwWindow window(1920, 1080, "Hello OpenGL");
+
+    // 编译链接着色器
+    const ShaderProgram shader;
+    shader.attach(GL_VERTEX_SHADER, "../shaders/basic.vert");
+    shader.attach(GL_FRAGMENT_SHADER, "../shaders/basic.frag");
+    shader.link();
+    shader.use();
+
+    【需要注意的部分 1】
+
+    // 初始化 VAO、VBO
+    const VertexArrays VAO;
+    VAO.bind();
+    VertexBuffers VBO(vertices, sizeof(vertices));
+
+    【需要注意的部分 2】
+    
+    【需要注意的部分 3】
+
+}
+```
+
+### 【需要注意的部分 1】
+
+```
+float vertices[] = {
+            // pos              // color
+            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // 顶点 1
+            0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // 顶点 2
+            0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f // 顶点 3
+    };
+```
+
+此处上传给 VBO 的顶点数据与第一章不同，新增了颜色信息
+
+一共有 3 个顶点，每个顶点有位置和颜色 2 种数据，两种都包含 3 个元素，顶点着色器分别尝试从`layout (location = 0)`和
+`layout (location = 1)`来获取两种数据
+
+### 【需要注意的部分 2】
+
+```
+    // position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(0);
+
+    // color
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void *>(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+```
+
+VBO 的格式改变了，这里修改 VAO 让着色器正确读取 VBO 的数据
+
+`glVertexAttribPointer(index, size, type, normalized, stride, pointer)` 函数的参数的含义如下
+
+|     参数     |                    含义                    |
+|:----------:|:----------------------------------------:|
+|   index    | 着色器从 layout (location = index) 的位置获取这种数据 |
+|    size    |           这种数据有多少个元素（3对应 vec3）           |
+|    type    |                 每个元素的类型                  |
+| normalized |                  是否归一化                   |
+|   stride   |               一个顶点总的有多大的数据               |
+|  pointer   |             这种数据从顶点数据的什么位置开始             |
+
+以 position 为例，在处理一个顶点时，着色器会从 VBO 读取`6 * sizeof(float)`大小的内存为一个顶点的数据，
+从 nullptr 开始的 3 个 float 元素被放在 `layout (location = 0)`
+
+### 【需要注意的部分 3】
+
+```
+int timeLoc = glGetUniformLocation(shader.id, "uTime");
+
+    while (!glfwWindowShouldClose(window.as_ptr())) {
+        const auto timeValue = static_cast<float>(glfwGetTime());
+        
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        glfwSwapBuffers(window);
+
+        shader.use();
+        glUniform1f(timeLoc, timeValue);
+
+        VAO.bind();
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        glfwSwapBuffers(window.as_ptr());
         glfwPollEvents();
     }
-    glfwTerminate();
-}
 ```
 
-> 注意：
->
-> #include <glad/glad.h>
->
-> #include <GLFW/glfw3.h>
->
-> 必须严格按照顺序 include，根据字母顺序，某些格式化工具会把 glfw 放到 glad 前面，导致无法编译，可以 在 glad 和 glfw
-> 间插入空行来避免排序
+* 统一变量 uniform
 
-## 创建第一个三角形
+片段着色器中有以下语句：
 
-* VAO：顶点数组对象
+`uniform float uTime;`
 
-  通过 VAO 配置着色器如何读取 VBO
+`glGetUniformLocation()`函数获取了着色器中名为`uTime`的统一变量的位置`timeLoc`
 
-* VBO：顶点缓冲对象
+每次循环都会获取时间并传递给统一变量
 
-  GPU 上的一块显存
+片段着色器对时间和偏移量求正弦值作为颜色，实现呼吸效果
 
-> 主要内容在注释
+### 插值与渐变
+
+默认情况下，显卡会自动完成插值，在三个顶点设置不同的颜色即可实现渐变效果
+
+通过 `flat` 关键字可以强制禁用插值，显卡将会以最后一个顶点作为显示颜色
+
+`basic.vert`
 
 ```
-#include <glad/glad.h>
-
-#include <GLFW/glfw3.h>
-
-#include <iostream>
-
-// 顶点着色器
-const char *vertexShaderSrc = R"(
-#version 460 core // OpenGL 版本
-// in 关键字初始化输入的变量
-// out 关键字初始化输出的变量
-// layout (location = x) 根据 VAO 的配置捕获数据
-layout (location = 0) in vec3 aPos; // 按照 VOA 中的配置，此处会分 3 次获得三角形的顶点位置
-void main() {
-    gl_Position = vec4(aPos, 1.0); // 给 gl_Position 赋值把位置直接交给 OpenGL
-}
-)";
-
-// 片段着色器
-const char *fragmentShaderSrc = R"(
 #version 460 core
-out vec4 FragColor;
-void main() {
-    FragColor = vec4(1.0, 0.5, 0.2, 1.0); // 给顶点设置颜色
+
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColOff;
+
+flat out vec3 vColOff;
+
+void main()
+{
+    gl_Position = vec4(aPos, 1.0);
+    vColOff = aColOff;
 }
-)";
+```
 
+`basic.frag`
 
-int main() {
-    // 初始化 GLFW，设置 OpenGL 版本为 4.6
-    if (!glfwInit())
-        return -1;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    // 初始化窗口，宽 1920 高 1080 标题 "Hello OpenGL"
-    GLFWwindow *window = glfwCreateWindow(1920, 1080, "Hello OpenGL", nullptr, nullptr);
-    if (!window)
-        return -1;
-    glfwMakeContextCurrent(window);
-    // 初始化 GLAD
-    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
-        std::cerr << "Failed to init GLAD\n";
-        return -1;
-    }
+```
+#version 460 core
 
-    // 编译着色器
-    auto compile = [](GLenum type, const char *src) { // 编译着色器的闭包
-        unsigned int s = glCreateShader(type); // 创建着色器
-        glShaderSource(s, 1, &src, nullptr); // 设置着色器源码
-        glCompileShader(s); // 执行编译
-        return s;
-    };
+flat in vec3 vColOff;
+out vec4 FragColor;
 
-    const unsigned int vs = compile(GL_VERTEX_SHADER, vertexShaderSrc); // 编译顶点着色器
-    const unsigned int fs = compile(GL_FRAGMENT_SHADER, fragmentShaderSrc); // 编译片段着色器
+uniform float uTime;
 
-    const unsigned int shaderProgram = glCreateProgram(); // 创建着色程序
-    glAttachShader(shaderProgram, vs); // 添加顶点着色器到着色程序
-    glAttachShader(shaderProgram, fs); // 添加片段着色器到着色程序
-    glLinkProgram(shaderProgram); // 链接着色程序
-    // 清理
-    glDeleteShader(vs);
-    glDeleteShader(fs);
+void main()
+{
+    vec3 color = vec3(
+    sin(uTime + vColOff.x),
+    sin(uTime + vColOff.y + 2.0),
+    sin(uTime + vColOff.z + 4.0)
+    ) * 0.5 + 0.5;
 
-    // 初始化 VAO 和 VBO
-    unsigned int VAO, VBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    // 将要上传到 VBO 的数据
-    constexpr float vertices[] = {-0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.0f, 0.5f, 0.0f};
-
-    // 绑定 VAO 和 VBO，绑定顺序一定是 VAO,VBO,EBO
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    // 将数据复制到 VBO
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // 配置 VAO
-    glVertexAttribPointer(0, // layout (location = 0)
-                          3, // 要捕获的元素格数
-                          GL_FLOAT, // 要捕获的元素类型
-                          GL_FALSE, // 是否归一化
-                          3 * sizeof(float), // 每组数据大小
-                          nullptr // 要捕获的数据在每组数据内的起始位置
-    );
-    glEnableVertexAttribArray(0); // 启用 layout (location = 0)
-
-    // 渲染循环
-    while (!glfwWindowShouldClose(window)) {
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f); // 设置背景颜色
-        glClear(GL_COLOR_BUFFER_BIT); // 清理
-
-        glUseProgram(shaderProgram); // 使用着色器
-        glBindVertexArray(VAO); // 绑定 VAO，每次循环都执行以避免多个 VAO 时出错
-        glDrawArrays(GL_TRIANGLES, 0, 3); // 画三角形
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
-    // 释放资源
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
-    glfwTerminate();
+    FragColor = vec4(color, 1.0);
 }
 ```
