@@ -3,6 +3,11 @@
 #include "VertexArrays.h"
 #include "VertexBuffers.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+
 int main() {
 
     const GlfwWindow window(1920, 1080, "Hello OpenGL");
@@ -13,6 +18,13 @@ int main() {
     shader.attach(GL_FRAGMENT_SHADER, "../shaders/basic.frag");
     shader.link();
     shader.use();
+
+    // 开启 Depth Test 避免 3D 问题 （可能未出现）
+    glEnable(GL_DEPTH_TEST);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // 关闭 VSync
+    glfwSwapInterval(0);
 
 
     float vertices[] = {
@@ -40,7 +52,23 @@ int main() {
     while (!glfwWindowShouldClose(window.as_ptr())) {
         const auto timeValue = static_cast<float>(glfwGetTime());
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        auto model = glm::mat4(1.0f);
+        model = glm::rotate(model, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
+
+        glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), // 相机位置
+                                     glm::vec3(0.0f, 0.0f, 0.0f), // 看向原点
+                                     glm::vec3(0.0f, 1.0f, 0.0f) // 上方向
+        );
+
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1920.0f / 1080.0f, 0.1f, 100.0f);
+
+        glm::mat4 mvp = projection * view * model;
+
+        const int mvpLoc = glGetUniformLocation(shader.id, "uMVP");
+        glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
 
         shader.use();
         glUniform1f(timeLoc, timeValue);
