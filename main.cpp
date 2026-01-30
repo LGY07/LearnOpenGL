@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Camera.h"
 
 int main() {
 
@@ -23,17 +24,21 @@ int main() {
     // 关闭 VSync
     glfwSwapInterval(0);
 
-    float vertices[] = {
-            // pos        // color
-            -0.5f, -0.5f, 0.0f, 1, 0, 0, // 0
-            0.5f,  -0.5f, 0.0f, 0, 1, 0, // 1
-            0.5f,  0.5f,  0.0f, 0, 0, 1, // 2
-            -0.5f, 0.5f,  0.0f, 1, 1, 0 // 3
-    };
+    float vertices[] = {// pos        // color
+                        -1.0f, -1.0f, 0.0f, 1, 0, 0, // 0
+                        1.0f,  -1.0f, 0.0f, 0, 1, 0, // 1
+                        1.0f,  1.0f,  0.0f, 0, 0, 1, // 2
+                        -1.0f, 1.0f,  0.0f, 1, 1, 0, // 3
+                        0.0f,  0.0f,  1.0f, 0, 0, 0}; // 4
 
     unsigned int indices[] = {
-            0, 1, 2, // 第一个三角形
-            2, 3, 0 // 第二个三角形
+            0, 1, 2, // 1
+            2, 3, 0, // 2
+            0, 1, 4, // 3
+            0, 2, 4, // 4
+            2, 1, 4, // 5
+            2, 3, 4 // 6
+
     };
 
     const Mesh mesh(vertices, sizeof(vertices), indices, sizeof(indices) / sizeof(unsigned int));
@@ -48,7 +53,55 @@ int main() {
 
     const int timeLoc = glGetUniformLocation(shader.id, "uTime");
 
+    // 创建 camera
+    Camera camera{};
+
+    // 注册鼠标回调函数
+    glfwSetWindowUserPointer(window.as_ptr(), &camera); // 将 camera 的指针传递给回调函数
+    auto mouse_callback = [](GLFWwindow *win, const double xpos, const double ypos) {
+        auto *cam = static_cast<Camera *>(glfwGetWindowUserPointer(win)); // 获取 camera 的指针
+
+        static float lastX = 960, lastY = 540;
+        static bool firstMouse = true;
+
+        if (firstMouse) {
+            lastX = static_cast<float>(xpos);
+            lastY = static_cast<float>(ypos);
+            firstMouse = false;
+        }
+
+        const auto xoffset = static_cast<float>(xpos - lastX);
+        const auto yoffset = static_cast<float>(lastY - ypos);
+        lastX = static_cast<float>(xpos);
+        lastY = static_cast<float>(ypos);
+
+        cam->ProcessMouse(xoffset, yoffset);
+    };
+    glfwSetCursorPosCallback(window.as_ptr(), mouse_callback); // 注册
+
+    // 捕获鼠标
+    glfwSetInputMode(window.as_ptr(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    // 初始化 deltaTime
+    float deltaTime = 0.0f;
+    float lastFrame = 0.0f;
+
     while (!glfwWindowShouldClose(window.as_ptr())) {
+        // 计算 deltaTime
+        const auto current = static_cast<float>(glfwGetTime());
+        deltaTime = current - lastFrame;
+        lastFrame = current;
+
+        // 处理键盘输入
+        if (glfwGetKey(window.as_ptr(), GLFW_KEY_W) == GLFW_PRESS)
+            camera.ProcessKeyboard(GLFW_KEY_W, deltaTime);
+        if (glfwGetKey(window.as_ptr(), GLFW_KEY_S) == GLFW_PRESS)
+            camera.ProcessKeyboard(GLFW_KEY_S, deltaTime);
+        if (glfwGetKey(window.as_ptr(), GLFW_KEY_A) == GLFW_PRESS)
+            camera.ProcessKeyboard(GLFW_KEY_A, deltaTime);
+        if (glfwGetKey(window.as_ptr(), GLFW_KEY_D) == GLFW_PRESS)
+            camera.ProcessKeyboard(GLFW_KEY_D, deltaTime);
+
         const auto timeValue = static_cast<float>(glfwGetTime());
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -56,18 +109,13 @@ int main() {
         auto model = glm::mat4(1.0f);
         model = glm::rotate(model, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
 
-        glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), // 相机位置
-                                     glm::vec3(0.0f, 0.0f, 0.0f), // 看向原点
-                                     glm::vec3(0.0f, 1.0f, 0.0f) // 上方向
-        );
-
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1920.0f / 1080.0f, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), 1920.0f / 1080.0f, 0.1f, 100.0f);
 
         glm::mat4 mvp = projection * view * model;
 
         const int mvpLoc = glGetUniformLocation(shader.id, "uMVP");
         glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
 
         shader.use();
         glUniform1f(timeLoc, timeValue);

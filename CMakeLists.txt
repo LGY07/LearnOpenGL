@@ -8,6 +8,7 @@ add_executable(LearnOpenGL WIN32
         src/GlfwWindow.cpp
         src/ShaderProgram.cpp
         src/Mesh.cpp
+        src/Camera.cpp
         third_party/glad/src/glad.c
 )
 
