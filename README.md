@@ -159,12 +159,8 @@ void Camera::updateVectors() {
 
 int main() {
     ... 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void *>(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    const Mesh mesh(vertices, sizeof(vertices), indices, sizeof(indices) / sizeof(unsigned int));
     const int timeLoc = glGetUniformLocation(shader.id, "uTime");
-
     // ----- 上面的内容无变化 -----
 
     // 创建 camera
