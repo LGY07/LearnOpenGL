@@ -21,16 +21,16 @@ float vertices[] = {
 VAO(`Mesh.cpp`)
 
 ```
-// position
-glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *) 0);
+// layout(location = 0) position
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), static_cast<void *>(nullptr));
 glEnableVertexAttribArray(0);
 
-// normal
-glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *) (3 * sizeof(float)));
+// layout(location = 1) normal
+glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), reinterpret_cast<void *>(3 * sizeof(float)));
 glEnableVertexAttribArray(1);
 
-// color
-glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *) (6 * sizeof(float)));
+// layout(location = 2) color
+glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), reinterpret_cast<void *>(6 * sizeof(float)));
 glEnableVertexAttribArray(2);
 ```
 

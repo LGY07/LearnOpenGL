@@ -37,6 +37,7 @@ int main() {
             0, 2, 3 // 1
     };
 
+
     const Mesh mesh(vertices, sizeof(vertices), indices, sizeof(indices) / sizeof(unsigned int));
 
     // 创建 camera
@@ -88,7 +89,6 @@ int main() {
         if (glfwGetKey(window.as_ptr(), GLFW_KEY_D) == GLFW_PRESS)
             camera.ProcessKeyboard(GLFW_KEY_D, deltaTime);
 
-        const auto timeValue = static_cast<float>(glfwGetTime());
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
