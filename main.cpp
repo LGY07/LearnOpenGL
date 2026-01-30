@@ -24,34 +24,20 @@ int main() {
     // 关闭 VSync
     glfwSwapInterval(0);
 
-    float vertices[] = {// pos        // color
-                        -1.0f, -1.0f, 0.0f, 1, 0, 0, // 0
-                        1.0f,  -1.0f, 0.0f, 0, 1, 0, // 1
-                        1.0f,  1.0f,  0.0f, 0, 0, 1, // 2
-                        -1.0f, 1.0f,  0.0f, 1, 1, 0, // 3
-                        0.0f,  0.0f,  1.0f, 0, 0, 0}; // 4
+    float vertices[] = {
+            // pos    // normal  // color
+            -1, -1, 0, 0, 0, 1, 1, 0, 0, // 0
+            1,  -1, 0, 0, 0, 1, 0, 1, 0, // 1
+            1,  1,  0, 0, 0, 1, 0, 0, 1, // 2
+            -1, 1,  0, 0, 0, 1, 1, 1, 0 // 3
+    };
 
     unsigned int indices[] = {
-            0, 1, 2, // 1
-            2, 3, 0, // 2
-            0, 1, 4, // 3
-            0, 2, 4, // 4
-            2, 1, 4, // 5
-            2, 3, 4 // 6
-
+            0, 1, 2, // 0
+            0, 2, 3 // 1
     };
 
     const Mesh mesh(vertices, sizeof(vertices), indices, sizeof(indices) / sizeof(unsigned int));
-
-    // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
-    glEnableVertexAttribArray(0);
-
-    // color
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void *>(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    const int timeLoc = glGetUniformLocation(shader.id, "uTime");
 
     // 创建 camera
     Camera camera{};
@@ -106,21 +92,20 @@ int main() {
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // MVP
         auto model = glm::mat4(1.0f);
         model = glm::rotate(model, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
-
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), 1920.0f / 1080.0f, 0.1f, 100.0f);
-
         glm::mat4 mvp = projection * view * model;
 
-        const int mvpLoc = glGetUniformLocation(shader.id, "uMVP");
-        glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
+        // Uniform
         shader.use();
-        glUniform1f(timeLoc, timeValue);
+        shader.setMat4("uMVP", mvp);
+        shader.setMat4("uModel", model);
+        shader.setVec3("lightPos", glm::vec3(2.0f, 2.0f, 2.0f));
+        shader.setVec3("viewPos", camera.Position);
 
-        // 调用 draw() 方法直接绘制出 Mesh
         mesh.draw();
 
         glfwSwapBuffers(window.as_ptr());

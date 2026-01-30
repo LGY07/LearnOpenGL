@@ -4,6 +4,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "glm/gtc/type_ptr.hpp"
+
 std::string ShaderProgram::loadFromFile(const char *path) {
     std::ifstream file(path);
     if (!file)
@@ -48,4 +50,19 @@ void ShaderProgram::link() const {
         glGetProgramInfoLog(id, 512, nullptr, info);
         throw std::runtime_error(info);
     }
+}
+
+void ShaderProgram::setFloat(const char *name, const float &value) const {
+    const int location = glGetUniformLocation(id, name);
+    glUniform1f(location, value);
+}
+
+void ShaderProgram::setVec3(const char *name, const glm::vec3 &vec) const {
+    const int location = glGetUniformLocation(id, name);
+    glUniform3fv(location, 1, glm::value_ptr(vec));
+}
+
+void ShaderProgram::setMat4(const char *name, const glm::mat4 &mat) const {
+    const int location = glGetUniformLocation(id, name);
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat));
 }
