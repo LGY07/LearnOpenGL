@@ -2,7 +2,7 @@
 
 > 后面大量使用 Uniform，为了方便已在 `ShaderProgram` 类实现了 `setFloat` `setVec3` `setMat4` 三个方法用于设置 Uniform 变量
 
-## 重写着色器
+## Phong 着色法
 
 光照需要法线
 
@@ -59,7 +59,7 @@ void main() {
 }
 ```
 
-`basic.frag`(Phong 着色法)
+`basic.frag` (Phong 着色法)
 
 ```
 #version 460 core
@@ -103,4 +103,47 @@ shader.setMat4("uMVP", mvp);
 shader.setMat4("uModel", model);
 shader.setVec3("lightPos", glm::vec3(2.0f, 2.0f, 2.0f)); // 光源位置
 shader.setVec3("viewPos", camera.Position); // 摄像机位置
+```
+
+完成以上修改就可以看到正常的光照效果
+
+## Blinn-Phong
+
+Blinn-Phong 能提供比 Phong 更好的性能和更好的稳定性，推荐使用 Blinn-Phong
+
+`basic.frag` (Blinn-Phong)
+
+```
+#version 330 core
+
+out vec4 FragColor;
+
+in vec3 FragPos;
+in vec3 Normal;
+in vec3 Color;
+
+uniform vec3 lightPos;
+uniform vec3 viewPos;
+
+void main() {
+    // 环境光
+    vec3 ambient = 0.1 * Color;
+
+    // 漫反射
+    vec3 norm = normalize(Normal);
+    vec3 lightDir = normalize(lightPos - FragPos);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * Color;
+
+    // Blinn-Phong 高光
+    vec3 viewDir = normalize(viewPos - FragPos);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+
+    float shininess = 64.0;
+    float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess);
+    vec3 specular = 0.5 * spec * vec3(1.0);
+
+    vec3 result = ambient + diffuse + specular;
+    FragColor = vec4(result, 1.0);
+}
 ```
