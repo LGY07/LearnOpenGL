@@ -3,7 +3,7 @@
 #include "GLFW/glfw3.h"
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) :
-    Front(0.0f, 0.0f, -1.0f), Speed(5.0f), Sensitivity(0.1f), Zoom(45.0f) {
+    Front(0.0f, 0.0f, -1.0f), Speed(5.0f), Sensitivity(0.08f), Zoom(45.0f) {
     Position = position;
     WorldUp = up;
     Yaw = yaw;
