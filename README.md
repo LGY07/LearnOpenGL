@@ -6,6 +6,27 @@
 
 将 OpenGL 初始化、着色器编译、VAO 和 VBO 的管理写为四个对象拆分至 `include` 和 `src` 目录，此处为 C++ 的内容不描述，具体可见仓库源码
 
+## 了解 OpenGL 4.x 风格的图形管线
+
+> 圆角框表示**固定函数**
+>
+> 方角框表示**可编程阶段**
+
+```mermaid
+flowchart TD
+    A(顶点拾取<br/>Vertex Fetch / Input Assembler)
+    B[顶点着色器<br/>Vertex Shader]
+    C[细分曲面控制着色器<br/>Tessellation Control Shader]
+    D(细分器<br/>Tessellator)
+    E[细分曲面评估着色器<br/>Tessellation Evaluation Shader]
+    F[几何着色器<br/>Geometry Shader]
+    G(光栅化<br/>Rasterization)
+    H[片段着色器<br/>Fragment Shader]
+    I(帧缓冲操作<br/>Depth / Stencil / Blend)
+
+    A --> B --> C --> D --> E --> F --> G --> H --> I
+```
+
 ## 三角形的渐变与呼吸效果
 
 ### 顶点着色器 `basic.vert`
