@@ -2,7 +2,7 @@
 
 ## MVP 是啥?
 
-```
+```math
 MVP = Projection * View * Model
 ```
 
@@ -16,7 +16,7 @@ MVP = Projection * View * Model
 
 旋转过的三角形顶点在屏幕上的投影位置会发生改变，所以需要修改顶点着色器
 
-```
+```glsl
 #version 460 core
 
 layout (location = 0) in vec3 aPos;
@@ -35,7 +35,7 @@ void main()
 
 ## 修改 C++ 程序
 
-```
+```cpp
 #include "GlfwWindow.h"
 #include "ShaderProgram.h"
 #include "VertexArrays.h"
@@ -101,7 +101,7 @@ int main() {
 
 添加 GLM 库，通过 GLM 库完成 MVP 矩阵变换
 
-```
+```cpp
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -109,7 +109,7 @@ int main() {
 
 ### 【修改 2】
 
-```
+```cpp
 // 开启 Depth Test 避免 3D 问题
 glEnable(GL_DEPTH_TEST);
 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -124,7 +124,7 @@ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 ### 【修改 4】
 
-```
+```cpp
 // Model 三角形自身的旋转
 auto model = glm::mat4(1.0f);
 model = glm::rotate(model, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
