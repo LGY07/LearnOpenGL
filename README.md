@@ -30,7 +30,6 @@ LearnOpenGL/
 │  ├─ glfw/         <- GLFW 库（窗口）
 │  ├─ glad/         <- GLAD 库（函数加载）
 │  └─ glm/          <- GLM 库（数学）
-
 ```
 
 ### 准备 GLFW
@@ -40,7 +39,7 @@ LearnOpenGL/
 
 进入解压后的 `glfw-3.4` 目录编译
 
-```
+```powershell
 mkdir build
 cd build
 cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
@@ -84,7 +83,7 @@ third_party/
 
 编辑 `CMakeLists.txt`
 
-```
+```cmake
 cmake_minimum_required(VERSION 4.0)
 project(LearnOpenGL)
 
@@ -120,7 +119,7 @@ target_link_libraries(LearnOpenGL PRIVATE
 
 如果配置正确，以下代码能创建一个灰色的窗口
 
-```
+```cpp
 #include <glad/glad.h>
 
 #include <GLFW/glfw3.h>
@@ -172,7 +171,7 @@ int main() {
 
 > 主要内容在注释
 
-```
+```cpp
 #include <glad/glad.h>
 
 #include <GLFW/glfw3.h>
