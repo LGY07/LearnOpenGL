@@ -31,7 +31,7 @@ flowchart TD
 
 ### 顶点着色器 `basic.vert`
 
-```
+```glsl
 #version 460 core
 
 layout (location = 0) in vec3 aPos; // 输入位置
@@ -48,7 +48,7 @@ void main()
 
 ### 片段着色器 `basic.frag`
 
-```
+```glsl
 #version 460 core
 
 in vec3 vColOff;
@@ -72,7 +72,7 @@ void main()
 
 ### 以下为重新整理后的样板代码
 
-```
+```cpp
 #include "GlfwWindow.h"
 #include "ShaderProgram.h"
 #include "VertexArrays.h"
@@ -105,7 +105,7 @@ int main() {
 
 ### 【需要注意的部分 1】
 
-```
+```cpp
 float vertices[] = {
             // pos              // color
             -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // 顶点 1
@@ -121,7 +121,7 @@ float vertices[] = {
 
 ### 【需要注意的部分 2】
 
-```
+```cpp
     // position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
@@ -149,7 +149,7 @@ VBO 的格式改变了，这里修改 VAO 让着色器正确读取 VBO 的数据
 
 ### 【需要注意的部分 3】
 
-```
+```cpp
 int timeLoc = glGetUniformLocation(shader.id, "uTime");
 
     while (!glfwWindowShouldClose(window.as_ptr())) {
@@ -189,7 +189,7 @@ int timeLoc = glGetUniformLocation(shader.id, "uTime");
 
 `basic.vert`
 
-```
+```glsl
 #version 460 core
 
 layout (location = 0) in vec3 aPos;
@@ -206,7 +206,7 @@ void main()
 
 `basic.frag`
 
-```
+```glsl
 #version 460 core
 
 flat in vec3 vColOff;
