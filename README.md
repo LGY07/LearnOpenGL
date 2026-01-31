@@ -12,7 +12,7 @@
 
 绘制一个正方形需要的顶点数据
 
-```
+```cpp
 float vertices[] = {
     // pos        // color
     -0.5f, -0.5f, 0.0f,  1, 0, 0, // 0
@@ -24,7 +24,7 @@ float vertices[] = {
 
 索引数据
 
-```
+```cpp
 unsigned int indices[] = {
     0, 1, 2,   // 第一个三角形
     2, 3, 0    // 第二个三角形
@@ -37,7 +37,7 @@ unsigned int indices[] = {
 
 操作与 VBO 几乎一样，但一定要注意绑定目标是 `GL_ELEMENT_ARRAY_BUFFER`
 
-```
+```cpp
 unsigned int EBO;
 
 glGenBuffers(1, &EBO); // 生成
@@ -56,7 +56,7 @@ EBO 是 VAO 的一部分，绑定时机很重要
 
 那么初始化的代码顺序应该是这样的
 
-```
+```cpp
 float vertices[] = {
     // pos        // color
     -0.5f, -0.5f, 0.0f,  1, 0, 0, // 0
@@ -101,7 +101,7 @@ glEnableVertexAttribArray(1);
 
 `Mesh.cpp`
 
-```
+```cpp
 #include "Mesh.h"
 
 #include <glad/glad.h>
@@ -152,7 +152,7 @@ Mesh::~Mesh() {
 
 `main.cpp`
 
-```
+```cpp
 #include "GlfwWindow.h"
 #include "Mesh.h" // 新的 Mesh 对象
 #include "ShaderProgram.h"
@@ -226,7 +226,7 @@ int main() {
 通过修改`顶点数据`和`索引数据`即可绘制出任意网格
 
 例如以下数据可以创建一个四棱锥
-```
+```cpp
     float vertices[] = {
         // pos        // color
         -1.0f, -1.0f, 0.0f, 1, 0, 0, // 0
