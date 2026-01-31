@@ -8,14 +8,14 @@
 
 循环前初始化
 
-```
+```cpp
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 ```
 
 然后在每次循环内
 
-```
+```cpp
 const auto current = static_cast<float>(glfwGetTime());
 deltaTime = current - lastFrame;
 lastFrame = current;
@@ -23,7 +23,7 @@ lastFrame = current;
 
 ### 键盘
 
-```
+```cpp
 if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
     ...
 }
@@ -37,7 +37,7 @@ if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
 
 创建鼠标回调函数
 
-```
+```cpp
 void mouse_callback(GLFWwindow *, double xpos, double ypos) {
     static float lastX = 960;
     static float lastY = 540;
@@ -60,7 +60,7 @@ void mouse_callback(GLFWwindow *, double xpos, double ypos) {
 
 注册回调函数
 
-```
+```cpp
 glfwSetCursorPosCallback(window, mouse_callback);
 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 ```
@@ -87,7 +87,7 @@ glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 | Sensitivity |             鼠标灵敏度              |
 |    Zoom     |              透视强弱              |
 
-```
+```cpp
 #include "camera.h"
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) :
@@ -146,7 +146,7 @@ void Camera::updateVectors() {
 
 ### 修改 `main.cpp`
 
-```
+```cpp
 #include "GlfwWindow.h"
 #include "Mesh.h"
 #include "ShaderProgram.h"
