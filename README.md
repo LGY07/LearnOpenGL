@@ -114,7 +114,7 @@ Blinn-Phong 能提供比 Phong 更好的性能和更好的稳定性，推荐使�
 `basic.frag` (Blinn-Phong)
 
 ```
-#version 330 core
+#version 460 core
 
 out vec4 FragColor;
 
