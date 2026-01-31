@@ -8,7 +8,7 @@
 
 VBO(`main.cpp`)
 
-```
+```cpp
 float vertices[] = {
     // pos              // normal           // color
     -0.5f,-0.5f,0.0f,   0,0,1,               1,0,0,
@@ -20,7 +20,7 @@ float vertices[] = {
 
 VAO(`Mesh.cpp`)
 
-```
+```cpp
 // layout(location = 0) position
 glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), static_cast<void *>(nullptr));
 glEnableVertexAttribArray(0);
@@ -36,7 +36,7 @@ glEnableVertexAttribArray(2);
 
 `basic.vert`
 
-```
+```glsl
 #version 460 core
 
 layout (location = 0) in vec3 aPos;
@@ -61,7 +61,7 @@ void main() {
 
 `basic.frag` (Phong 着色法)
 
-```
+```glsl
 #version 460 core
 
 out vec4 FragColor;
@@ -98,7 +98,7 @@ void main() {
 
 需要设置的 Uniform
 
-```
+```cpp
 shader.setMat4("uMVP", mvp);
 shader.setMat4("uModel", model);
 shader.setVec3("lightPos", glm::vec3(2.0f, 2.0f, 2.0f)); // 光源位置
@@ -113,7 +113,7 @@ Blinn-Phong 能提供比 Phong 更好的性能和更好的稳定性，推荐使�
 
 `basic.frag` (Blinn-Phong)
 
-```
+```glsl
 #version 460 core
 
 out vec4 FragColor;
